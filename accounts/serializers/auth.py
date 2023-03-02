@@ -1,0 +1,92 @@
+from rest_framework import serializers
+from rest_framework_simplejwt.serializers import (
+    TokenRefreshSerializer as BaseTokenRefreshSerializer,
+    TokenVerifySerializer as BaseTokenVerifySerializer,
+    TokenObtainPairSerializer as BaseTokenObtainPairSerializer
+)
+
+from accounts.models import User
+
+
+class UserRegisterSerializer(serializers.ModelSerializer):
+    """Serializers registration requests and creates a new user."""
+
+    username = serializers.CharField(
+        min_length=8, max_length=30, required=True
+    )
+    email = serializers.EmailField()
+    password1 = serializers.CharField(
+        label='Password',
+        write_only=True,
+        style={'input_type': 'password'}
+    )
+    password2 = serializers.CharField(
+        label='Confirm Password',
+        write_only=True,
+        style={'input_type': 'password'}
+    )
+
+    class Meta:
+        model = User
+        fields = (
+            'id',
+            'username',
+            'email',
+            'password1',
+            'password2',
+        )
+
+    def validate(self, attrs: dict) -> dict:
+        if attrs['password1'] != attrs['password2']:
+            raise serializers.ValidationError(
+                {"password": "Password fields do not match."}
+            )
+        return attrs
+
+    def create(self, validated_data: dict) -> User:
+        password1 = validated_data.pop('password1')
+        validated_data.pop('password2')
+
+        user = super().create(validated_data)
+        user.set_password(password1)
+        user.save()
+        return user
+
+
+class TokenObtainPairSerializer(BaseTokenObtainPairSerializer):
+    @classmethod
+    def get_token(cls, user: User):
+        token = super().get_token(user)
+        token['username'] = user.username
+        token['email'] = user.email
+        return token
+
+    def update(self, instance, validated_data):
+        raise NotImplementedError
+
+    def create(self, validated_data):
+        raise NotImplementedError
+
+
+class TokenRefreshSerializer(BaseTokenRefreshSerializer):
+
+    def validate(self, attrs: dict) -> dict:
+        return super().validate(attrs)
+
+    def create(self, validated_data):
+        raise NotImplementedError
+
+    def update(self, instance, validated_data):
+        raise NotImplementedError
+
+
+class TokenVerifySerializer(BaseTokenVerifySerializer):
+
+    def validate(self, attrs: dict) -> dict:
+        return super().validate(attrs)
+
+    def create(self, validated_data):
+        raise NotImplementedError
+
+    def update(self, instance, validated_data):
+        raise NotImplementedError
