@@ -1,0 +1,13 @@
+[run]
+omit=
+    # virtual environment
+    ./venv/*
+    # static files
+    ./static/*
+    ./staticfiles/*
+    # python files
+    */migrations/*
+    manage.py
+    settings.py
+    */settings/*
+    */tests/*
