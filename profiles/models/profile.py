@@ -11,9 +11,9 @@ class Profile(TimestampedModel):
     )
     bio = models.TextField(blank=True, null=True)
     image = models.URLField(blank=True, null=True)
-    followers = models.ManyToManyField(
+    followed = models.ManyToManyField(
         'self',
-        related_name='followed_by',
+        related_name='followers',
         symmetrical=False,
         blank=True
     )
@@ -27,18 +27,18 @@ class Profile(TimestampedModel):
         return self.user.username
 
     def follow(self, profile: 'Profile') -> None:
-        self.followers.add(profile)
+        self.followed.add(profile)
 
     def unfollow(self, profile: 'Profile') -> None:
-        self.followers.remove(profile)
+        self.followed.remove(profile)
 
     def is_following(self, profile: 'Profile') -> bool:
-        return self.followers.contains(profile)
+        return self.followed.contains(profile)
 
     def is_followed_by(self, profile: 'Profile') -> bool:
-        return self.followed_by.contains(profile)
+        return self.followers.contains(profile)
 
-    def add_to_favourites(self, post: 'Profile') -> None:
+    def add_to_favourites(self, post: Post) -> None:
         self.favourites.add(post)
 
     def remove_from_favourites(self, post: Post) -> None:

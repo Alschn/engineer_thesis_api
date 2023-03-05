@@ -1,1 +1,1 @@
-from .schema.extensions import JWTAuthenticationExtension, JWTCookieAuthenticationExtension
+from .schema.extensions import JWTAuthenticationExtension

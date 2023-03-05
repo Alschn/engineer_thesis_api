@@ -1,12 +1,12 @@
 from rest_framework import serializers
 
 from posts.models import Comment, Post
-from profiles.models import Profile
 from profiles.serializers.profile import EmbeddedProfileSerializer
 
 
 class CommentSerializer(serializers.ModelSerializer):
-    author = EmbeddedProfileSerializer()
+    post = serializers.SlugRelatedField(slug_field='slug', read_only=True)
+    author = EmbeddedProfileSerializer(read_only=True)
 
     class Meta:
         model = Comment
@@ -21,36 +21,24 @@ class CommentSerializer(serializers.ModelSerializer):
 
 
 class CommentCreateSerializer(serializers.ModelSerializer):
-
-    def __init__(self, *args, post: Post = None, author: Profile = None, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.post = post
-        self.author = author
+    post = serializers.SlugRelatedField(slug_field='slug', queryset=Post.objects.all())
+    body = serializers.CharField(max_length=1000, allow_blank=False)
 
     class Meta:
         model = Comment
         fields = (
             'id',
+            'post',
             'author',
             'body',
             'created_at',
             'updated_at',
         )
-        read_only_fields = ('created_at', 'updated_at')
-
-    def create(self, validated_data: dict) -> Comment:
-        post = self.post or self.context['post']
-        author = self.author or self.context['author']
-
-        return Comment.objects.create(
-            author=author,
-            post=post,
-            **validated_data
-        )
+        read_only_fields = ('author', 'created_at', 'updated_at')
 
 
 class EmbeddedCommentSerializer(serializers.ModelSerializer):
-    author = EmbeddedProfileSerializer()
+    author = EmbeddedProfileSerializer(read_only=True)
 
     class Meta:
         model = Comment

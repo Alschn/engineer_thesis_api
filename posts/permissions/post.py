@@ -1,0 +1,16 @@
+from typing import Any
+
+from rest_framework import permissions
+from rest_framework.request import Request
+
+from posts.models import Post
+
+
+class IsPostAuthorPermission(permissions.BasePermission):
+    protected_methods = ('PATCH', 'DELETE')
+
+    def has_object_permission(self, request: Request, view: Any, obj: Post) -> bool:
+        if request.method in self.protected_methods:
+            return request.user.is_authenticated and obj.author == request.user.profile
+
+        return True
