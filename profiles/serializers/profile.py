@@ -1,3 +1,4 @@
+from django.contrib.auth.models import AnonymousUser
 from rest_framework import serializers
 
 from accounts.models import User
@@ -10,7 +11,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     is_following_you = serializers.SerializerMethodField()
     is_followed_by_you = serializers.SerializerMethodField()
 
-    def __init__(self, *args, user: User = None, **kwargs):
+    def __init__(self, *args, user: User | AnonymousUser = None, **kwargs):
         super().__init__(*args, **kwargs)
         self.user = user
 
@@ -32,11 +33,11 @@ class ProfileSerializer(serializers.ModelSerializer):
         if user is None or not user.is_authenticated:
             return False
 
-        followee = user.profile
         follower = instance
-        return followee.is_followed_by(follower)
+        followee = user.profile
+        return follower.is_following(followee)
 
-    def get_is_followed(self, instance: Profile) -> bool:
+    def get_is_followed_by_you(self, instance: Profile) -> bool:
         user = self.user or self.context['request'].user
 
         if user is None or not user.is_authenticated:
@@ -44,7 +45,7 @@ class ProfileSerializer(serializers.ModelSerializer):
 
         follower = user.profile
         followee = instance
-        return follower.is_following(followee)
+        return followee.is_followed_by(follower)
 
 
 class ProfileListSerializer(serializers.ModelSerializer):
@@ -52,7 +53,7 @@ class ProfileListSerializer(serializers.ModelSerializer):
     is_following_you = serializers.SerializerMethodField()
     is_followed_by_you = serializers.SerializerMethodField()
 
-    def __init__(self, *args, user: User = None, **kwargs):
+    def __init__(self, *args, user: User | AnonymousUser = None, **kwargs):
         super().__init__(*args, **kwargs)
         self.user = user
 
@@ -72,9 +73,9 @@ class ProfileListSerializer(serializers.ModelSerializer):
         if user is None or not user.is_authenticated:
             return False
 
-        followee = user.profile
         follower = instance
-        return followee.is_followed_by(follower)
+        followee = user.profile
+        return follower.is_following(followee)
 
     def get_is_followed_by_you(self, instance: Profile) -> bool:
         user = self.user or self.context['request'].user
@@ -84,7 +85,7 @@ class ProfileListSerializer(serializers.ModelSerializer):
 
         follower = user.profile
         followee = instance
-        return follower.is_following(followee)
+        return followee.is_followed_by(follower)
 
 
 class EmbeddedProfileSerializer(ProfileSerializer):

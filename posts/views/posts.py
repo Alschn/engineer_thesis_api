@@ -69,7 +69,7 @@ class PostsViewSet(
     def get_queryset(self) -> QuerySet[Post]:
         if self.action == "feed":
             return Post.objects.filter(
-                author__in=self.request.user.profile.followers.all()
+                author__in=self.request.user.profile.followed.all()
             ).select_related('author', 'author__user')
 
         elif self.action in ["comments", "comments_detail"]:
