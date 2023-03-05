@@ -1,4 +1,6 @@
+from django.contrib.auth.models import AnonymousUser
 from django.db import transaction
+from django.db.models import QuerySet
 from rest_framework import serializers
 
 from accounts.models import User
@@ -8,11 +10,12 @@ from profiles.serializers.profile import EmbeddedProfileSerializer
 
 
 class TagRelatedField(serializers.RelatedField):
-    def get_queryset(self):
+    def get_queryset(self) -> QuerySet[Tag]:
         return Tag.objects.all()
 
     def to_internal_value(self, data: str) -> Tag:
-        tag, created = Tag.objects.get_or_create(tag=data, slug=data.lower())
+        lowercase_tag = data.lower()
+        tag, created = Tag.objects.get_or_create(tag=lowercase_tag, slug=lowercase_tag)
         return tag
 
     def to_representation(self, value: Tag):
@@ -20,30 +23,31 @@ class TagRelatedField(serializers.RelatedField):
 
 
 class PostSerializer(serializers.ModelSerializer):
-    author = EmbeddedProfileSerializer()
-    favourited = serializers.SerializerMethodField()
-    tag_list = TagRelatedField(many=True, source='tags')
+    author = EmbeddedProfileSerializer(read_only=True)
+    is_favourited = serializers.SerializerMethodField()
+    tags = TagRelatedField(many=True, read_only=True)
 
-    def __init__(self, *args, user: User = None, **kwargs):
+    def __init__(self, *args, user: User | AnonymousUser = None, **kwargs):
         super().__init__(*args, **kwargs)
         self.user = user
 
     class Meta:
         model = Post
         fields = (
+            'id',
             'author',
-            'body',
-            'description',
-            'favourited',
-            'favourites_count',
             'slug',
-            'tag_list',
             'title',
+            'description',
+            'body',
+            'tags',
+            'is_favourited',
+            'favourites_count',
             'created_at',
             'updated_at',
         )
 
-    def get_favourited(self, instance: Post) -> bool:
+    def get_is_favourited(self, instance: Post) -> bool:
         user = self.user or self.context['request'].user
 
         if user is None or not user.is_authenticated:
@@ -54,7 +58,7 @@ class PostSerializer(serializers.ModelSerializer):
 
 class PostListSerializer(serializers.ModelSerializer):
     author = EmbeddedProfileSerializer()
-    tag_list = TagRelatedField(many=True, source='tags')
+    tags = TagRelatedField(many=True)
 
     class Meta:
         model = Post
@@ -66,25 +70,31 @@ class PostListSerializer(serializers.ModelSerializer):
             'description',
             'body',
             'favourites_count',
-            'tag_list',
+            'tags',
             'created_at',
             'updated_at',
         )
 
 
 class PostCreateSerializer(serializers.ModelSerializer):
+    tags = TagRelatedField(many=True, allow_empty=False)
+
     class Meta:
         model = Post
         fields = (
-            'body',
-            'description',
+            'id',
+            'author',
             'slug',
             'title',
+            'description',
+            'body',
+            'tags',
+            'created_at',
         )
+        read_only_fields = ('author', 'slug')
 
-    def __init__(self, *args, user: User = None, author: Profile = None, **kwargs):
+    def __init__(self, *args, author: Profile = None, **kwargs):
         super().__init__(*args, **kwargs)
-        self.user = user
         self.author = author
 
     @transaction.atomic
@@ -94,3 +104,43 @@ class PostCreateSerializer(serializers.ModelSerializer):
         post = Post.objects.create(author=author, **validated_data)
         post.tags.add(*tags)
         return post
+
+
+class PostUpdateSerializer(serializers.ModelSerializer):
+    tags = TagRelatedField(many=True, allow_empty=True, required=False)
+
+    class Meta:
+        model = Post
+        fields = (
+            'id',
+            'author',
+            'slug',
+            'title',
+            'description',
+            'body',
+            'tags',
+            'created_at',
+            'updated_at',
+        )
+        read_only_fields = ('id', 'author', 'slug', 'title', 'created_at', 'updated_at')
+
+
+class PostFavouriteSerializer(PostSerializer):
+    class Meta(PostSerializer.Meta):
+        read_only_fields = PostSerializer.Meta.fields
+
+    def __init__(self, *args, favourite: bool = None, profile: Profile = None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.favourite = favourite
+        self.profile = profile
+
+    def update(self, instance: Post, validated_data: dict) -> Post:
+        favourite = self.favourite
+        profile = self.profile or self.context['user'].profile
+
+        if favourite:
+            profile.add_to_favourites(instance)
+        else:
+            profile.remove_from_favourites(instance)
+
+        return instance

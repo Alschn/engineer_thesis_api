@@ -38,7 +38,7 @@ class Profile(TimestampedModel):
     def is_followed_by(self, profile: 'Profile') -> bool:
         return self.followers.contains(profile)
 
-    def add_to_favourites(self, post: 'Profile') -> None:
+    def add_to_favourites(self, post: Post) -> None:
         self.favourites.add(post)
 
     def remove_from_favourites(self, post: Post) -> None:

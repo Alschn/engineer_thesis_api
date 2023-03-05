@@ -31,12 +31,13 @@ class CommentCreateSerializer(serializers.ModelSerializer):
         model = Comment
         fields = (
             'id',
+            'post',
             'author',
             'body',
             'created_at',
             'updated_at',
         )
-        read_only_fields = ('created_at', 'updated_at')
+        read_only_fields = ('post', 'author', 'created_at', 'updated_at')
 
     def create(self, validated_data: dict) -> Comment:
         post = self.post or self.context['post']
