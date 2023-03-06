@@ -18,4 +18,6 @@ urlpatterns = [
     path('api/schema/', SchemaAPIView.as_view(), name='schema'),
     path('api/schema/redoc/', SchemaRedocView.as_view(url_name='schema'), name='redoc'),
     path('api/schema/swagger-ui/', SchemaSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    # custom apps
+    path('martor/', include('martor.urls')),
 ]

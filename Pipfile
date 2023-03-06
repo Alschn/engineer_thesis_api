@@ -17,6 +17,8 @@ gunicorn = "*"
 drf-spectacular = {extras = ["sidecar"], version = "*"}
 whitenoise = "*"
 dj-database-url = "*"
+mdgen = "*"
+martor = "*"
 
 [dev-packages]
 coverage = "*"
