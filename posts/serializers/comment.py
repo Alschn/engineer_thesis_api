@@ -1,10 +1,11 @@
 from rest_framework import serializers
 
+from core.shared.serializers import ToRepresentationRequiresUserMixin
 from posts.models import Comment, Post
 from profiles.serializers.profile import EmbeddedProfileSerializer
 
 
-class CommentSerializer(serializers.ModelSerializer):
+class CommentSerializer(ToRepresentationRequiresUserMixin, serializers.ModelSerializer):
     post = serializers.SlugRelatedField(slug_field='slug', read_only=True)
     author = EmbeddedProfileSerializer(read_only=True)
 
@@ -37,7 +38,7 @@ class CommentCreateSerializer(serializers.ModelSerializer):
         read_only_fields = ('author', 'created_at', 'updated_at')
 
 
-class EmbeddedCommentSerializer(serializers.ModelSerializer):
+class EmbeddedCommentSerializer(ToRepresentationRequiresUserMixin, serializers.ModelSerializer):
     author = EmbeddedProfileSerializer(read_only=True)
 
     class Meta:

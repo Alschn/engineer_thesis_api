@@ -22,7 +22,9 @@ class CommentsViewsTests(APITestCase):
         response_json = response.json()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response_json['count'], expected_queryset.count())
-        self.assertEqual(response_json['results'], CommentSerializer(expected_queryset, many=True).data)
+        self.assertEqual(response_json['results'], CommentSerializer(
+            expected_queryset, many=True, user=self.user).data
+        )
 
     def test_list_comments_filter_by_author(self):
         self._require_jwt(self.user)
@@ -35,7 +37,9 @@ class CommentsViewsTests(APITestCase):
         response_json = response.json()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response_json['count'], expected_queryset.count())
-        self.assertEqual(response_json['results'], CommentSerializer(expected_queryset, many=True).data)
+        self.assertEqual(response_json['results'], CommentSerializer(
+            expected_queryset, many=True, user=self.user).data
+        )
 
     def test_list_comments_filter_by_post(self):
         pass
