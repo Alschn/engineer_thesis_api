@@ -89,10 +89,14 @@ class ProfileListSerializer(serializers.ModelSerializer):
 
 
 class EmbeddedProfileSerializer(ProfileSerializer):
+    email = serializers.CharField(source='user.email')
+
     class Meta:
         model = Profile
         fields = (
             'id',
             'username',
+            'email',
             'image',
+            'is_followed_by_you',
         )
