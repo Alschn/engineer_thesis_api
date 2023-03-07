@@ -62,7 +62,7 @@ class PostsViewsTests(APITestCase):
         expected_queryset = profile.favourites.all()
 
         self._require_jwt(profile.user)
-        response = self.client.get(reverse_lazy('posts:posts-feed'))
+        response = self.client.get(reverse_lazy('posts:posts-favourites'))
         response_json = response.json()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response_json['count'], expected_queryset.count())
