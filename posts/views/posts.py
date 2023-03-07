@@ -82,7 +82,7 @@ class PostsViewSet(
         return super().get_serializer_class()
 
     def get_queryset(self) -> QuerySet[Post]:
-        if self.action == "feed":
+        if self.action == "list_feed":
             return Post.objects.filter(
                 author__in=self.request.user.profile.followed.all()
             ).select_related('author', 'author__user').prefetch_related('tags')
