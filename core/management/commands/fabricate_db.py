@@ -41,14 +41,14 @@ class Command(BaseCommand):
             raise e
 
 
-def fabricate_test_user(email: str = "test@example.com") -> tuple[User, Profile]:
+def fabricate_test_user(email: str = "test@example.com", username: str = "test") -> tuple[User, Profile]:
     user = User.objects.filter(email=email).first()
     if not user:
-        user = UserFactory(username="test", email="test@example.com")
+        user = UserFactory(username=username, email="test@example.com")
         user.set_password('test')
     else:
         print(f'User {user} already exists, skipping creation...')
-        user.username = email
+        user.username = username
 
     user.save()
     profile = user.profile

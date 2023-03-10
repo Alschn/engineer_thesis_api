@@ -4,7 +4,8 @@ from rest_framework import serializers
 from rest_framework_simplejwt.serializers import (
     TokenRefreshSerializer as BaseTokenRefreshSerializer,
     TokenVerifySerializer as BaseTokenVerifySerializer,
-    TokenObtainPairSerializer as BaseTokenObtainPairSerializer
+    TokenObtainPairSerializer as BaseTokenObtainPairSerializer,
+    TokenBlacklistSerializer as BaseTokenBlacklistSerializer
 )
 
 from accounts.models import User
@@ -106,6 +107,18 @@ class TokenRefreshSerializer(BaseTokenRefreshSerializer):
 
 
 class TokenVerifySerializer(BaseTokenVerifySerializer):
+
+    def validate(self, attrs: dict) -> dict:
+        return super().validate(attrs)
+
+    def create(self, validated_data):
+        raise NotImplementedError
+
+    def update(self, instance, validated_data):
+        raise NotImplementedError
+
+
+class TokenBlacklistSerializer(BaseTokenBlacklistSerializer):
 
     def validate(self, attrs: dict) -> dict:
         return super().validate(attrs)

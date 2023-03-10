@@ -25,6 +25,10 @@ class ProfileSerializer(serializers.ModelSerializer):
             'image',
             'is_following_you',
             'is_followed_by_you',
+            'posts_count',
+            'followed_count',
+            'followers_count',
+            'favourites_count',
         )
 
     def get_is_following_you(self, instance: Profile) -> bool:
@@ -89,10 +93,14 @@ class ProfileListSerializer(serializers.ModelSerializer):
 
 
 class EmbeddedProfileSerializer(ProfileSerializer):
+    email = serializers.CharField(source='user.email')
+
     class Meta:
         model = Profile
         fields = (
             'id',
             'username',
+            'email',
             'image',
+            'is_followed_by_you',
         )

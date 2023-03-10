@@ -26,6 +26,22 @@ class Profile(TimestampedModel):
     def __str__(self) -> str:
         return self.user.username
 
+    @property
+    def posts_count(self) -> int:
+        return self.posts.count()
+
+    @property
+    def followed_count(self) -> int:
+        return self.followed.count()
+
+    @property
+    def followers_count(self) -> int:
+        return self.followers.count()
+
+    @property
+    def favourites_count(self) -> int:
+        return self.favourites.count()
+
     def follow(self, profile: 'Profile') -> None:
         self.followed.add(profile)
 

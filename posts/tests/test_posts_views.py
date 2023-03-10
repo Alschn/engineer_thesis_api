@@ -1,3 +1,4 @@
+from django.contrib.auth.models import AnonymousUser
 from rest_framework import status
 from rest_framework.reverse import reverse_lazy
 
@@ -21,7 +22,9 @@ class PostsViewsTests(APITestCase):
         response_json = response.json()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response_json['count'], expected_queryset.count())
-        self.assertEqual(response_json['results'], PostListSerializer(expected_queryset, many=True).data)
+        self.assertEqual(response_json['results'], PostListSerializer(
+            expected_queryset, many=True, user=profile.user
+        ).data)
 
     def test_list_posts_unauthorized(self):
         PostFactory.create_batch(10)
@@ -30,7 +33,9 @@ class PostsViewsTests(APITestCase):
         response_json = response.json()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response_json['count'], expected_queryset.count())
-        self.assertEqual(response_json['results'], PostListSerializer(expected_queryset, many=True).data)
+        self.assertEqual(response_json['results'], PostListSerializer(
+            expected_queryset, many=True, user=AnonymousUser()
+        ).data)
 
     # todo: filtering, ordering, searching, etc.
 
@@ -48,7 +53,9 @@ class PostsViewsTests(APITestCase):
         response_json = response.json()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response_json['count'], expected_queryset.count())
-        self.assertEqual(response_json['results'], PostListSerializer(expected_queryset, many=True).data)
+        self.assertEqual(response_json['results'], PostListSerializer(
+            expected_queryset, many=True, user=profile.user
+        ).data)
 
     def test_list_feed_posts_unauthorized(self):
         response = self.client.get(reverse_lazy('posts:posts-feed'))
@@ -62,11 +69,13 @@ class PostsViewsTests(APITestCase):
         expected_queryset = profile.favourites.all()
 
         self._require_jwt(profile.user)
-        response = self.client.get(reverse_lazy('posts:posts-feed'))
+        response = self.client.get(reverse_lazy('posts:posts-favourites'))
         response_json = response.json()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response_json['count'], expected_queryset.count())
-        self.assertEqual(response_json['results'], PostListSerializer(expected_queryset, many=True).data)
+        self.assertEqual(response_json['results'], PostListSerializer(
+            expected_queryset, many=True, user=profile.user
+        ).data)
 
     def test_list_favourites_posts_unauthorized(self):
         response = self.client.get(reverse_lazy('posts:posts-favourites'))
@@ -224,7 +233,9 @@ class PostsViewsTests(APITestCase):
         response_json = response.json()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response_json['count'], post.comments.count())
-        self.assertEqual(response_json['results'], EmbeddedCommentSerializer(post.comments, many=True).data)
+        self.assertEqual(response_json['results'], EmbeddedCommentSerializer(
+            post.comments, many=True, user=profile.user
+        ).data)
 
     def test_post_retrieve_comment(self):
         post = PostFactory(comments=True, comments__size=1)
@@ -234,7 +245,7 @@ class PostsViewsTests(APITestCase):
 
         response = self.client.get(reverse_lazy('posts:posts-comments-detail', args=(post.slug, comment.id)))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.json(), EmbeddedCommentSerializer(comment).data)
+        self.assertEqual(response.json(), EmbeddedCommentSerializer(comment, user=profile.user).data)
 
     def test_post_delete_comment(self):
         post = PostFactory()

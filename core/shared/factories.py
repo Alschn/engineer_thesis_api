@@ -6,11 +6,15 @@ import factory
 from django.db.models.signals import post_save
 from django.utils.crypto import get_random_string
 from django.utils.text import slugify
+from factory import Faker
 from factory.django import DjangoModelFactory
+from mdgen import MarkdownPostProvider
 
 from posts.models import Post
 
 DEFAULT_USER_FACTORY_PASSWORD = 'test'
+
+Faker.add_provider(MarkdownPostProvider)
 
 
 @factory.django.mute_signals(post_save)
@@ -20,11 +24,11 @@ class UserFactory(DjangoModelFactory):
 
     first_name = factory.Faker('first_name')
     last_name = factory.Faker('last_name')
-    username = factory.LazyAttribute(
-        lambda o: "%s_%s" % (o.first_name.lower(), o.last_name.lower())
+    username = factory.LazyAttributeSequence(
+        lambda o, n: "%s_%s_%d" % (o.first_name.lower(), o.last_name.lower(), n)
     )
-    email = factory.LazyAttribute(
-        lambda o: "%s.%s@example.com" % (o.first_name.lower(), o.last_name.lower())
+    email = factory.LazyAttributeSequence(
+        lambda o, n: "%s.%s%d@example.com" % (o.first_name.lower(), o.last_name.lower(), n)
     )
     is_active = True
     password = factory.PostGenerationMethodCall('set_password', DEFAULT_USER_FACTORY_PASSWORD)
@@ -52,7 +56,12 @@ class PostFactory(DjangoModelFactory):
 
     title = factory.Faker('sentence', nb_words=4)
     description = factory.Faker('text', max_nb_chars=200)
-    body = factory.Faker('text', max_nb_chars=500)
+    body = factory.Faker(
+        'post',
+        size=factory.LazyFunction(
+            lambda: random.choice(['small', 'medium'])
+        )
+    )
     author = factory.SubFactory(
         'core.shared.factories.ProfileFactory',
     )

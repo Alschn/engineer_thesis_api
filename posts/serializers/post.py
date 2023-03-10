@@ -4,6 +4,7 @@ from django.db.models import QuerySet
 from rest_framework import serializers
 
 from accounts.models import User
+from core.shared.serializers import ToRepresentationRequiresUserMixin
 from posts.models import Tag, Post
 from profiles.models import Profile
 from profiles.serializers.profile import EmbeddedProfileSerializer
@@ -22,7 +23,7 @@ class TagRelatedField(serializers.RelatedField):
         return value.tag
 
 
-class PostSerializer(serializers.ModelSerializer):
+class PostSerializer(ToRepresentationRequiresUserMixin, serializers.ModelSerializer):
     author = EmbeddedProfileSerializer(read_only=True)
     is_favourited = serializers.SerializerMethodField()
     tags = TagRelatedField(many=True, read_only=True)
@@ -56,7 +57,7 @@ class PostSerializer(serializers.ModelSerializer):
         return user.profile.added_to_favourites(instance)
 
 
-class PostListSerializer(serializers.ModelSerializer):
+class PostListSerializer(ToRepresentationRequiresUserMixin, serializers.ModelSerializer):
     author = EmbeddedProfileSerializer()
     tags = TagRelatedField(many=True)
 
