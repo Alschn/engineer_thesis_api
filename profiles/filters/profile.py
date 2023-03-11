@@ -7,6 +7,10 @@ from profiles.models import Profile
 class ProfilesFilterSet(FilterSet):
     username = filters.CharFilter(
         field_name='user__username',
+        lookup_expr='iexact'
+    )
+    username__icontains = filters.CharFilter(
+        field_name='user__username',
         lookup_expr='icontains',
     )
 

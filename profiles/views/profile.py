@@ -34,6 +34,12 @@ class ProfilesViewSet(
     POST    /api/profiles/<str:username>/follow/
 
     DELETE  /api/profiles/<str:username>/follow/
+
+    GET     /api/profiles/<str:username>/followers/
+
+    GET     /api/profiles/<str:username>/followed/
+
+    GET     /api/profiles/<str:username>/favourites/
     """
     permission_classes = [AllowAny]
     serializer_class = ProfileSerializer
@@ -43,11 +49,8 @@ class ProfilesViewSet(
     lookup_field = 'user__username'
 
     def get_queryset(self) -> QuerySet[Profile]:
-        if self.action == "followed":
-            return self.request.user.profile.followed.prefetch_related('user')
-
-        elif self.action == "followers":
-            return self.request.user.profile.followers.prefetch_related('user')
+        if self.action in ["followers", "followed"]:
+            return Profile.objects.prefetch_related('user')
 
         return Profile.objects.select_related('user')
 
@@ -78,17 +81,23 @@ class ProfilesViewSet(
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(
-        methods=['GET'], detail=False,
+        methods=['GET'], detail=True,
         url_name='followed', url_path='followed',
         permission_classes=[IsAuthenticated]
     )
-    def followed(self, *args: Any, **kwargs: Any):
-        return super().list(self, *args, **kwargs)
+    def followed(self, *args: Any, **kwargs: Any) -> Response:
+        queryset = self.get_object().followed.all()
+        page = self.paginate_queryset(queryset)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
 
     @action(
-        methods=['GET'], detail=False,
+        methods=['GET'], detail=True,
         url_name='followers', url_path='followers',
         permission_classes=[IsAuthenticated]
     )
-    def followers(self, *args: Any, **kwargs: Any):
-        return super().list(self, *args, **kwargs)
+    def followers(self, *args: Any, **kwargs: Any) -> Response:
+        queryset = self.get_object().followers.all()
+        page = self.paginate_queryset(queryset)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)

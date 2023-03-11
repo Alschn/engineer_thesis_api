@@ -10,8 +10,6 @@ from profiles.serializers import ProfileSerializer, ProfileListSerializer
 
 class ProfileViewsTests(APITestCase):
     profiles_url = reverse_lazy('profiles:profiles-list')
-    followed_url = reverse_lazy('profiles:profiles-followed')
-    followers_url = reverse_lazy('profiles:profiles-followers')
 
     def test_list_profiles(self):
         profile = ProfileFactory()
@@ -39,17 +37,36 @@ class ProfileViewsTests(APITestCase):
             ProfileListSerializer(expected_queryset, many=True, user=AnonymousUser()).data
         )
 
-    def test_list_profiles_filter_by_username(self):
+    def test_list_profiles_filter_by_username_iexact(self):
         query = 'test'
         profile = ProfileFactory()
         ProfileFactory.create_batch(5)
+        ProfileFactory.create(user__username='test')
         ProfileFactory.create(user__username='testowy')
-        ProfileFactory.create(user__username='Testoviron')
+
+        expected_queryset = Profile.objects.filter(user__username__iexact=query)
+
+        self._require_jwt(profile.user)
+        response = self.client.get(self.profiles_url, {'username': query})
+        response_json = response.json()
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response_json['count'], expected_queryset.count())
+        self.assertEqual(
+            response_json['results'],
+            ProfileListSerializer(expected_queryset, many=True, user=profile.user).data
+        )
+
+    def test_list_profiles_filter_by_username_icontains(self):
+        query = 'test'
+        profile = ProfileFactory()
+        ProfileFactory.create_batch(5)
+        ProfileFactory.create(user__username='test')
+        ProfileFactory.create(user__username='testowy')
 
         expected_queryset = Profile.objects.filter(user__username__icontains=query)
 
         self._require_jwt(profile.user)
-        response = self.client.get(self.profiles_url, {'username': query})
+        response = self.client.get(self.profiles_url, {'username__icontains': query})
         response_json = response.json()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response_json['count'], expected_queryset.count())
@@ -127,7 +144,9 @@ class ProfileViewsTests(APITestCase):
         self.assertIn('followee', response.json())
 
     def test_list_followed_unauthorized(self):
-        response = self.client.get(self.followed_url)
+        response = self.client.get(
+            reverse_lazy('profiles:profiles-followed', kwargs={'username': 'test'})
+        )
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_list_followed(self):
@@ -137,7 +156,9 @@ class ProfileViewsTests(APITestCase):
         pass
 
     def test_list_followers_unauthorized(self):
-        response = self.client.get(self.followers_url)
+        response = self.client.get(
+            reverse_lazy('profiles:profiles-followers', kwargs={'username': 'test'})
+        )
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_list_followers(self):
