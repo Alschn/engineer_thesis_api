@@ -9,6 +9,7 @@ class Post(TimestampedModel):
     description = models.TextField()
     body = models.TextField()
     is_published = models.BooleanField(db_index=True, default=True)
+    thumbnail = models.ImageField(upload_to='posts/thumbnails', null=True, blank=True)
     author = models.ForeignKey(
         'profiles.Profile',
         on_delete=models.CASCADE,

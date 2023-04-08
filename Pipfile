@@ -19,6 +19,7 @@ whitenoise = "*"
 dj-database-url = "*"
 mdgen = "*"
 martor = "*"
+pillow = "*"
 
 [dev-packages]
 coverage = "*"
