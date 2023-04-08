@@ -43,6 +43,7 @@ class PostSerializer(ToRepresentationRequiresUserMixin, serializers.ModelSeriali
             'body',
             'tags',
             'is_favourited',
+            'is_published',
             'favourites_count',
             'created_at',
             'updated_at',
@@ -70,6 +71,7 @@ class PostListSerializer(ToRepresentationRequiresUserMixin, serializers.ModelSer
             'title',
             'description',
             'body',
+            'is_published',
             'favourites_count',
             'tags',
             'created_at',
@@ -89,6 +91,7 @@ class PostCreateSerializer(serializers.ModelSerializer):
             'title',
             'description',
             'body',
+            'is_published',
             'tags',
             'created_at',
         )
@@ -120,6 +123,7 @@ class PostUpdateSerializer(serializers.ModelSerializer):
             'description',
             'body',
             'tags',
+            'is_published',
             'created_at',
             'updated_at',
         )
