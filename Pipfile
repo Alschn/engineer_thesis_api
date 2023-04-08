@@ -20,6 +20,7 @@ dj-database-url = "*"
 mdgen = "*"
 martor = "*"
 pillow = "*"
+django-colorfield = "*"
 
 [dev-packages]
 coverage = "*"
