@@ -27,11 +27,11 @@ from posts.serializers.post import (
 
 PostsPagination = page_number_pagination_factory(
     page_size=25,
-    max_page_size=100,
+    max_page_size=1000,
 )
 CommentsPagination = page_number_pagination_factory(
     page_size=10,
-    max_page_size=10,
+    max_page_size=100,
 )
 
 
