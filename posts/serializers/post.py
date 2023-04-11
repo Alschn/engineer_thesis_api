@@ -1,6 +1,6 @@
 from django.contrib.auth.models import AnonymousUser
 from django.db import transaction
-from django.db.models import QuerySet
+from django.db.models import QuerySet, Q
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 
@@ -18,7 +18,7 @@ class TagRelatedField(serializers.RelatedField):
 
     def to_internal_value(self, data: str) -> Tag:
         lowercase_tag = data.lower()
-        tags = Tag.objects.filter(tag=lowercase_tag)
+        tags = Tag.objects.filter(Q(tag=lowercase_tag) | Q(slug=lowercase_tag))
         tag: Tag | None = tags.first()
 
         if not tag:
