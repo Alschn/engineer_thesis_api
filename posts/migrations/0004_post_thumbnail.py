@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='post',
             name='thumbnail',
-            field=models.ImageField(blank=True, null=True, upload_to='posts/thumbnails'),
+            field=models.ImageField(blank=True, null=True, upload_to='uploads/thumbnails'),
         ),
     ]
