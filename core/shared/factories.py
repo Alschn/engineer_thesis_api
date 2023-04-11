@@ -66,6 +66,16 @@ class PostFactory(DjangoModelFactory):
         'core.shared.factories.ProfileFactory',
     )
 
+    with_thumbnail = True
+
+    class Params:
+        with_thumbnail = factory.Trait(
+            thumbnail=factory.django.ImageField(
+                width=400, height=300,
+                color=factory.Faker('hex_color'),
+            )
+        )
+
     @factory.post_generation
     def slug(obj: Post, created: bool, extracted: Any, **kwargs: Any):
         if not created:
