@@ -9,6 +9,9 @@ from posts.serializers import PostSerializer
 from posts.serializers.comment import EmbeddedCommentSerializer
 from posts.serializers.post import PostListSerializer, PostUpdateSerializer
 
+# https://stackoverflow.com/questions/33546216/full-url-in-django-rest-framework-serializer
+# context={'request': response.wsgi_request}
+
 BASE_64_HEADER = 'data:image/png;base64'
 BASE_64_PAYLOAD = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAAEElEQVR4nGLacJwDEAAA//8DsgGCR4reaAAAAABJRU5ErkJggg=='
 BASE_64_IMAGE = f'{BASE_64_HEADER},{BASE_64_PAYLOAD}'
@@ -27,7 +30,8 @@ class PostsViewsTests(TearDownFilesMixin, APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response_json['count'], expected_queryset.count())
         self.assertEqual(response_json['results'], PostListSerializer(
-            expected_queryset, many=True, user=profile.user
+            expected_queryset, many=True, user=profile.user,
+            context={'request': response.wsgi_request}
         ).data)
 
     def test_list_posts_unauthorized(self):
@@ -38,7 +42,8 @@ class PostsViewsTests(TearDownFilesMixin, APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response_json['count'], expected_queryset.count())
         self.assertEqual(response_json['results'], PostListSerializer(
-            expected_queryset, many=True, user=AnonymousUser()
+            expected_queryset, many=True, user=AnonymousUser(),
+            context={'request': response.wsgi_request}
         ).data)
 
     # todo: filtering, ordering, searching, etc.
@@ -58,7 +63,8 @@ class PostsViewsTests(TearDownFilesMixin, APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response_json['count'], expected_queryset.count())
         self.assertEqual(response_json['results'], PostListSerializer(
-            expected_queryset, many=True, user=profile.user
+            expected_queryset, many=True, user=profile.user,
+            context={'request': response.wsgi_request}
         ).data)
 
     def test_list_feed_posts_unauthorized(self):
@@ -78,7 +84,8 @@ class PostsViewsTests(TearDownFilesMixin, APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response_json['count'], expected_queryset.count())
         self.assertEqual(response_json['results'], PostListSerializer(
-            expected_queryset, many=True, user=profile.user
+            expected_queryset, many=True, user=profile.user,
+            context={'request': response.wsgi_request}
         ).data)
 
     def test_list_favourites_posts_unauthorized(self):
@@ -146,7 +153,12 @@ class PostsViewsTests(TearDownFilesMixin, APITestCase):
 
         response = self.client.get(reverse_lazy('posts:posts-detail', args=(post.slug,)))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.json(), PostSerializer(post, user=profile.user).data)
+        self.assertEqual(
+            response.json(),
+            PostSerializer(
+                post, user=profile.user, context={'request': response.wsgi_request})
+            .data
+        )
 
     def test_retrieve_post_unauthorized(self):
         post = PostFactory()
@@ -155,7 +167,12 @@ class PostsViewsTests(TearDownFilesMixin, APITestCase):
 
         response = self.client.get(reverse_lazy('posts:posts-detail', args=(post.slug,)))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.json(), PostSerializer(post, user=profile.user).data)
+        self.assertEqual(
+            response.json(),
+            PostSerializer(
+                post, user=profile.user, context={'request': response.wsgi_request})
+            .data
+        )
 
     def test_retrieve_post_not_found(self):
         response = self.client.get(reverse_lazy('posts:posts-detail', args=('test',)))
