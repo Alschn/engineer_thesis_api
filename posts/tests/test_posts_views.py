@@ -3,14 +3,18 @@ from rest_framework import status
 from rest_framework.reverse import reverse_lazy
 
 from core.shared.factories import ProfileFactory, TagFactory, PostFactory, CommentFactory, UserFactory
-from core.shared.unit_tests import APITestCase
+from core.shared.unit_tests import APITestCase, TearDownFilesMixin
 from posts.models import Post
 from posts.serializers import PostSerializer
 from posts.serializers.comment import EmbeddedCommentSerializer
 from posts.serializers.post import PostListSerializer, PostUpdateSerializer
 
+BASE_64_HEADER = 'data:image/png;base64'
+BASE_64_PAYLOAD = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAAEElEQVR4nGLacJwDEAAA//8DsgGCR4reaAAAAABJRU5ErkJggg=='
+BASE_64_IMAGE = f'{BASE_64_HEADER},{BASE_64_PAYLOAD}'
 
-class PostsViewsTests(APITestCase):
+
+class PostsViewsTests(TearDownFilesMixin, APITestCase):
     posts_url = reverse_lazy('posts:posts-list')
 
     def test_list_posts(self):
@@ -90,6 +94,7 @@ class PostsViewsTests(APITestCase):
             'description': 'Test description',
             'body': 'Test body',
             'tags': ['test', 'test1'],
+            'thumbnail': BASE_64_IMAGE
         })
         post = profile.posts.first()
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -115,6 +120,7 @@ class PostsViewsTests(APITestCase):
         self.assertIn('description', response_json)
         self.assertIn('body', response_json)
         self.assertIn('tags', response_json)
+        self.assertIn('thumbnail', response_json)
 
     def test_create_post_existing_tags(self):
         profile = ProfileFactory()
@@ -127,6 +133,7 @@ class PostsViewsTests(APITestCase):
             'description': 'Test description',
             'body': 'Test body',
             'tags': [tag.tag],
+            'thumbnail': BASE_64_IMAGE
         })
         post = profile.posts.first()
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
