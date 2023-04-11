@@ -18,7 +18,12 @@ class TagRelatedField(serializers.RelatedField):
 
     def to_internal_value(self, data: str) -> Tag:
         lowercase_tag = data.lower()
-        tag, created = Tag.objects.get_or_create(tag=lowercase_tag, slug=lowercase_tag)
+        tags = Tag.objects.filter(tag=lowercase_tag)
+        tag: Tag | None = tags.first()
+
+        if not tag:
+            return Tag.objects.create(tag=lowercase_tag)
+
         return tag
 
     def to_representation(self, value: Tag):
