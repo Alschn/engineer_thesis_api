@@ -125,6 +125,7 @@ class TagFactory(DjangoModelFactory):
         model = 'posts.Tag'
 
     tag = factory.Faker('word')
+    color = factory.Faker('hex_color')
 
     @factory.post_generation
     def slug(obj, create, extracted, **kwargs):
