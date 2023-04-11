@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AnonymousUser
 from django.db import transaction
 from django.db.models import QuerySet
+from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 
 from accounts.models import User
@@ -42,6 +43,7 @@ class PostSerializer(ToRepresentationRequiresUserMixin, serializers.ModelSeriali
             'title',
             'description',
             'body',
+            'thumbnail',
             'tags',
             'is_favourited',
             'is_published',
@@ -74,6 +76,7 @@ class PostListSerializer(ToRepresentationRequiresUserMixin, serializers.ModelSer
             'body',
             'is_published',
             'favourites_count',
+            'thumbnail',
             'tags',
             'created_at',
             'updated_at',
@@ -82,6 +85,7 @@ class PostListSerializer(ToRepresentationRequiresUserMixin, serializers.ModelSer
 
 class PostCreateSerializer(serializers.ModelSerializer):
     tags = TagRelatedField(many=True, allow_empty=False)
+    thumbnail = Base64ImageField()
 
     class Meta:
         model = Post
@@ -92,6 +96,7 @@ class PostCreateSerializer(serializers.ModelSerializer):
             'title',
             'description',
             'body',
+            'thumbnail',
             'is_published',
             'tags',
             'created_at',

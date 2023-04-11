@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "1e9a67f77c58d15fcc80e819e6b72611d6cfafb767c688898bbe07f9e7d90afb"
+            "sha256": "6ea770838c2fcd8e9d06c3bc5da79f31da0678a3691dde87a47d2ac8559410db"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -192,6 +192,14 @@
             ],
             "index": "pypi",
             "version": "==5.2.2"
+        },
+        "drf-extra-fields": {
+            "hashes": [
+                "sha256:54df0bef56c38ec7efb40e146ada42fa734b5087e45e9e54b2fd23baccc41466",
+                "sha256:a11aeecc85847b0acda6ce57bb144c584c8ebb43ecdf989d8caa7bb130090885"
+            ],
+            "index": "pypi",
+            "version": "==3.4.1"
         },
         "drf-spectacular": {
             "extras": [
@@ -488,7 +496,7 @@
                 "sha256:64299f4909223da747622c030b781c0d7811e359c37124b4bd368fb8c6518baa",
                 "sha256:98b1b2782e3c6c4904938b84c0eb932721069dfdb9134313beff7c83c2df24bf"
             ],
-            "markers": "python_version >= '3.7' and python_version < '4'",
+            "markers": "python_version >= '3.7' and python_version < '4.0'",
             "version": "==2.28.2"
         },
         "setuptools": {

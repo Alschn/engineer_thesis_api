@@ -21,6 +21,7 @@ mdgen = "*"
 martor = "*"
 pillow = "*"
 django-colorfield = "*"
+drf-extra-fields = "*"
 
 [dev-packages]
 coverage = "*"
