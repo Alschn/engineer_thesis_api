@@ -6,6 +6,7 @@ from rest_framework import serializers
 from accounts.models import User
 from core.shared.serializers import ToRepresentationRequiresUserMixin
 from posts.models import Tag, Post
+from posts.serializers.tag import TagSerializer
 from profiles.models import Profile
 from profiles.serializers.profile import EmbeddedProfileSerializer
 
@@ -26,7 +27,7 @@ class TagRelatedField(serializers.RelatedField):
 class PostSerializer(ToRepresentationRequiresUserMixin, serializers.ModelSerializer):
     author = EmbeddedProfileSerializer(read_only=True)
     is_favourited = serializers.SerializerMethodField()
-    tags = TagRelatedField(many=True, read_only=True)
+    tags = TagSerializer(many=True, read_only=True)
 
     def __init__(self, *args, user: User | AnonymousUser = None, **kwargs):
         super().__init__(*args, **kwargs)
@@ -59,8 +60,8 @@ class PostSerializer(ToRepresentationRequiresUserMixin, serializers.ModelSeriali
 
 
 class PostListSerializer(ToRepresentationRequiresUserMixin, serializers.ModelSerializer):
-    author = EmbeddedProfileSerializer()
-    tags = TagRelatedField(many=True)
+    author = EmbeddedProfileSerializer(read_only=True)
+    tags = TagSerializer(many=True, read_only=True)
 
     class Meta:
         model = Post
