@@ -22,7 +22,7 @@ class TagRelatedField(serializers.RelatedField):
         tag: Tag | None = tags.first()
 
         if not tag:
-            return Tag.objects.create(tag=lowercase_tag)
+            return Tag.objects.create(tag=lowercase_tag, slug=lowercase_tag)
 
         return tag
 
