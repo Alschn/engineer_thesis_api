@@ -1,11 +1,13 @@
 from django.contrib.auth.models import AnonymousUser
 from django.db import transaction
-from django.db.models import QuerySet
+from django.db.models import QuerySet, Q
+from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 
 from accounts.models import User
 from core.shared.serializers import ToRepresentationRequiresUserMixin
 from posts.models import Tag, Post
+from posts.serializers.tag import TagSerializer
 from profiles.models import Profile
 from profiles.serializers.profile import EmbeddedProfileSerializer
 
@@ -16,7 +18,12 @@ class TagRelatedField(serializers.RelatedField):
 
     def to_internal_value(self, data: str) -> Tag:
         lowercase_tag = data.lower()
-        tag, created = Tag.objects.get_or_create(tag=lowercase_tag, slug=lowercase_tag)
+        tags = Tag.objects.filter(Q(tag=lowercase_tag) | Q(slug=lowercase_tag))
+        tag: Tag | None = tags.first()
+
+        if not tag:
+            return Tag.objects.create(tag=lowercase_tag, slug=lowercase_tag)
+
         return tag
 
     def to_representation(self, value: Tag):
@@ -26,7 +33,7 @@ class TagRelatedField(serializers.RelatedField):
 class PostSerializer(ToRepresentationRequiresUserMixin, serializers.ModelSerializer):
     author = EmbeddedProfileSerializer(read_only=True)
     is_favourited = serializers.SerializerMethodField()
-    tags = TagRelatedField(many=True, read_only=True)
+    tags = TagSerializer(many=True, read_only=True)
 
     def __init__(self, *args, user: User | AnonymousUser = None, **kwargs):
         super().__init__(*args, **kwargs)
@@ -41,8 +48,10 @@ class PostSerializer(ToRepresentationRequiresUserMixin, serializers.ModelSeriali
             'title',
             'description',
             'body',
+            'thumbnail',
             'tags',
             'is_favourited',
+            'is_published',
             'favourites_count',
             'created_at',
             'updated_at',
@@ -58,8 +67,8 @@ class PostSerializer(ToRepresentationRequiresUserMixin, serializers.ModelSeriali
 
 
 class PostListSerializer(ToRepresentationRequiresUserMixin, serializers.ModelSerializer):
-    author = EmbeddedProfileSerializer()
-    tags = TagRelatedField(many=True)
+    author = EmbeddedProfileSerializer(read_only=True)
+    tags = TagSerializer(many=True, read_only=True)
 
     class Meta:
         model = Post
@@ -70,7 +79,9 @@ class PostListSerializer(ToRepresentationRequiresUserMixin, serializers.ModelSer
             'title',
             'description',
             'body',
+            'is_published',
             'favourites_count',
+            'thumbnail',
             'tags',
             'created_at',
             'updated_at',
@@ -79,6 +90,7 @@ class PostListSerializer(ToRepresentationRequiresUserMixin, serializers.ModelSer
 
 class PostCreateSerializer(serializers.ModelSerializer):
     tags = TagRelatedField(many=True, allow_empty=False)
+    thumbnail = Base64ImageField()
 
     class Meta:
         model = Post
@@ -89,6 +101,8 @@ class PostCreateSerializer(serializers.ModelSerializer):
             'title',
             'description',
             'body',
+            'thumbnail',
+            'is_published',
             'tags',
             'created_at',
         )
@@ -120,6 +134,7 @@ class PostUpdateSerializer(serializers.ModelSerializer):
             'description',
             'body',
             'tags',
+            'is_published',
             'created_at',
             'updated_at',
         )

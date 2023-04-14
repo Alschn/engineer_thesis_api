@@ -8,6 +8,8 @@ class Post(TimestampedModel):
     title = models.CharField(db_index=True, max_length=255)
     description = models.TextField()
     body = models.TextField()
+    is_published = models.BooleanField(db_index=True, default=True)
+    thumbnail = models.ImageField(upload_to='uploads/thumbnails', null=True, blank=True)
     author = models.ForeignKey(
         'profiles.Profile',
         on_delete=models.CASCADE,

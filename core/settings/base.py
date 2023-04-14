@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
     'martor',
+    'colorfield',
     # open api
     'drf_spectacular',
     'drf_spectacular_sidecar',

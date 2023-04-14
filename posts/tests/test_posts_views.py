@@ -3,14 +3,21 @@ from rest_framework import status
 from rest_framework.reverse import reverse_lazy
 
 from core.shared.factories import ProfileFactory, TagFactory, PostFactory, CommentFactory, UserFactory
-from core.shared.unit_tests import APITestCase
+from core.shared.unit_tests import APITestCase, TearDownFilesMixin
 from posts.models import Post
 from posts.serializers import PostSerializer
 from posts.serializers.comment import EmbeddedCommentSerializer
 from posts.serializers.post import PostListSerializer, PostUpdateSerializer
 
+# https://stackoverflow.com/questions/33546216/full-url-in-django-rest-framework-serializer
+# context={'request': response.wsgi_request}
 
-class PostsViewsTests(APITestCase):
+BASE_64_HEADER = 'data:image/png;base64'
+BASE_64_PAYLOAD = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAAEElEQVR4nGLacJwDEAAA//8DsgGCR4reaAAAAABJRU5ErkJggg=='
+BASE_64_IMAGE = f'{BASE_64_HEADER},{BASE_64_PAYLOAD}'
+
+
+class PostsViewsTests(TearDownFilesMixin, APITestCase):
     posts_url = reverse_lazy('posts:posts-list')
 
     def test_list_posts(self):
@@ -23,7 +30,8 @@ class PostsViewsTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response_json['count'], expected_queryset.count())
         self.assertEqual(response_json['results'], PostListSerializer(
-            expected_queryset, many=True, user=profile.user
+            expected_queryset, many=True, user=profile.user,
+            context={'request': response.wsgi_request}
         ).data)
 
     def test_list_posts_unauthorized(self):
@@ -34,7 +42,8 @@ class PostsViewsTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response_json['count'], expected_queryset.count())
         self.assertEqual(response_json['results'], PostListSerializer(
-            expected_queryset, many=True, user=AnonymousUser()
+            expected_queryset, many=True, user=AnonymousUser(),
+            context={'request': response.wsgi_request}
         ).data)
 
     # todo: filtering, ordering, searching, etc.
@@ -54,7 +63,8 @@ class PostsViewsTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response_json['count'], expected_queryset.count())
         self.assertEqual(response_json['results'], PostListSerializer(
-            expected_queryset, many=True, user=profile.user
+            expected_queryset, many=True, user=profile.user,
+            context={'request': response.wsgi_request}
         ).data)
 
     def test_list_feed_posts_unauthorized(self):
@@ -74,7 +84,8 @@ class PostsViewsTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response_json['count'], expected_queryset.count())
         self.assertEqual(response_json['results'], PostListSerializer(
-            expected_queryset, many=True, user=profile.user
+            expected_queryset, many=True, user=profile.user,
+            context={'request': response.wsgi_request}
         ).data)
 
     def test_list_favourites_posts_unauthorized(self):
@@ -90,6 +101,7 @@ class PostsViewsTests(APITestCase):
             'description': 'Test description',
             'body': 'Test body',
             'tags': ['test', 'test1'],
+            'thumbnail': BASE_64_IMAGE
         })
         post = profile.posts.first()
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -115,6 +127,7 @@ class PostsViewsTests(APITestCase):
         self.assertIn('description', response_json)
         self.assertIn('body', response_json)
         self.assertIn('tags', response_json)
+        self.assertIn('thumbnail', response_json)
 
     def test_create_post_existing_tags(self):
         profile = ProfileFactory()
@@ -127,6 +140,7 @@ class PostsViewsTests(APITestCase):
             'description': 'Test description',
             'body': 'Test body',
             'tags': [tag.tag],
+            'thumbnail': BASE_64_IMAGE
         })
         post = profile.posts.first()
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -139,7 +153,12 @@ class PostsViewsTests(APITestCase):
 
         response = self.client.get(reverse_lazy('posts:posts-detail', args=(post.slug,)))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.json(), PostSerializer(post, user=profile.user).data)
+        self.assertEqual(
+            response.json(),
+            PostSerializer(
+                post, user=profile.user, context={'request': response.wsgi_request})
+            .data
+        )
 
     def test_retrieve_post_unauthorized(self):
         post = PostFactory()
@@ -148,7 +167,12 @@ class PostsViewsTests(APITestCase):
 
         response = self.client.get(reverse_lazy('posts:posts-detail', args=(post.slug,)))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.json(), PostSerializer(post, user=profile.user).data)
+        self.assertEqual(
+            response.json(),
+            PostSerializer(
+                post, user=profile.user, context={'request': response.wsgi_request})
+            .data
+        )
 
     def test_retrieve_post_not_found(self):
         response = self.client.get(reverse_lazy('posts:posts-detail', args=('test',)))
